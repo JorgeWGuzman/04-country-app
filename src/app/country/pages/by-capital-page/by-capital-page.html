@@ -1,7 +1,17 @@
-<country-search-input placeholder="Buscar por capital"
-
-(value)="onSearch($event)"
+<country-search-input
+placeholder="Buscar por capital"
+(value)="query.set($event)"
 />
 
-<country-list [countries]="countries()"></country-list>
-<!-- <country-list  />> -->
+@if (countryResource.error()) {
+  <!-- $any() le permite al HTML leer la propiedad 'message' del objeto Error -->
+  <h3>{{ $any(countryResource.error()).message }}</h3>
+} @if(countryResource.hasValue()) {
+  <country-list [countries]="countryResource.value()!" />
+}
+<!-- @if (countryResource.error()) {
+  <h3>{{ countryResource.error() }}</h3>
+} @if(countryResource.hasValue()) {
+  <country-list [countries]="countryResource.value()!" />
+} -->
+

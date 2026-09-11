@@ -1,8 +1,9 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, resource, signal } from '@angular/core';
 import { SearchInput } from "../../components/search-input/search-input";
 import { CountryList } from "../../components/country-list/country-list";
-import { Country } from '../../services/country';
-import { RESTCountry } from '../../interfaces/rest-countries-interface';
+import { CountryService } from '../../services/country';
+import { Country } from '../../interfaces/country.interface';
+import { first, firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-by-capital-page',
@@ -10,24 +11,49 @@ import { RESTCountry } from '../../interfaces/rest-countries-interface';
   templateUrl: './by-capital-page.html',
 })
 export class ByCapitalPage {
-  countryService = inject(Country);
+  countryService = inject(CountryService);
+  query = signal('');
 
-  // isLoading = signal(false)
-  // isError = signal<string|null>(null)
-  // countries = signal<RESTCountry[]>([])
-  countries = signal<any[]>([]);
 
-  onSearch(query: string) {
-    // if (this.isLoading()) return;
-    // this.isLoading.set(true);
-    // this.isError.set(null);
+  countryResource = resource({
+  // 1. Cambia 'request' por 'params' en la función reactiva
+  params: () => ({ query: this.query() }),
 
-this.countryService.searchByCapital(query).subscribe((response) => {
+  // 2. Desestructura 'params' en lugar de 'request' en el loader
+  loader: async({ params }) => {
+     if (!params.query) return [];
 
-  this.countries.set(response.data.objects);
-  console.log('Countries Signal');
-  console.log(this.countries());
-
+     return await firstValueFrom(
+       // 3. Usa params.query para la petición
+       this.countryService.searchByCapital(params.query)
+     );
+  },
 });
-    }
-  }
+}
+//   isLoading = signal(false);
+//   isError = signal<string|null>(null);
+//   countries = signal<Country[]>([]);
+
+//   onSearch(query: string) {
+//     if (this.isLoading()) return;
+//     this.isLoading.set(true);
+//     this.isError.set(null);
+
+// this.countryService.searchByCapital(query).subscribe({
+//   next: (countries) => {
+
+//   this.isLoading.set(false);
+
+//   if (countries.length === 0) {
+//     this.countries.set([]);
+//     this.isError.set(
+//       `No se encontró un país con esa capital: ${query}`
+//     );
+//     return;
+//   }
+
+//   this.countries.set(countries);
+// },
+// })
+//     }
+//   }
