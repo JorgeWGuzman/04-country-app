@@ -1,9 +1,11 @@
-import { Component, inject, resource, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop'; // 1. Nueva importación para rxResource
 import { SearchInput } from "../../components/search-input/search-input";
 import { CountryList } from "../../components/country-list/country-list";
 import { CountryService } from '../../services/country';
 import { Country } from '../../interfaces/country.interface';
-import { first, firstValueFrom } from 'rxjs';
+import { Observable, of } from 'rxjs'; // 2. Importamos 'of' de rxjs
+
 
 @Component({
   selector: 'app-by-capital-page',
@@ -14,22 +16,69 @@ export class ByCapitalPage {
   countryService = inject(CountryService);
   query = signal('');
 
+// 1. Tipamos rxResource: < TipoDeRespuesta, TipoDePetición >
+  // 1. Mantenemos los genéricos en la raíz
 
-  countryResource = resource({
-  // 1. Cambia 'request' por 'params' en la función reactiva
-  params: () => ({ query: this.query() }),
+countryResource = rxResource<Country[], { query: string }>({
 
-  // 2. Desestructura 'params' en lugar de 'request' en el loader
-  loader: async({ params }) => {
-     if (!params.query) return [];
+  defaultValue: [] as Country[],
 
-     return await firstValueFrom(
-       // 3. Usa params.query para la petición
-       this.countryService.searchByCapital(params.query)
-     );
-  },
+  params: () => ({
+    query: this.query(),
+  }),
+
+  stream: ({ params }) => {
+
+    if (!params.query) {
+      return of<Country[]>([]);
+    }
+
+    return this.countryService.searchByCapital(
+      params.query
+    );
+
+  }
+
 });
-}
+
+  }
+
+
+
+
+
+// import { Component, inject, resource, signal } from '@angular/core';
+// import { SearchInput } from "../../components/search-input/search-input";
+// import { CountryList } from "../../components/country-list/country-list";
+// import { CountryService } from '../../services/country';
+// import { Country } from '../../interfaces/country.interface';
+// import { first, firstValueFrom } from 'rxjs';
+
+// @Component({
+//   selector: 'app-by-capital-page',
+//   imports: [SearchInput, CountryList],
+//   templateUrl: './by-capital-page.html',
+// })
+// export class ByCapitalPage {
+//   countryService = inject(CountryService);
+//   query = signal('');
+
+
+//   countryResource = resource({
+//   // 1. Cambia 'request' por 'params' en la función reactiva
+//   params: () => ({ query: this.query() }),
+
+//   // 2. Desestructura 'params' en lugar de 'request' en el loader
+//   loader: async({ params }) => {
+//      if (!params.query) return [];
+
+//      return await firstValueFrom(
+//        // 3. Usa params.query para la petición
+//        this.countryService.searchByCapital(params.query)
+//      );
+//   },
+// });
+// }
 //   isLoading = signal(false);
 //   isError = signal<string|null>(null);
 //   countries = signal<Country[]>([]);

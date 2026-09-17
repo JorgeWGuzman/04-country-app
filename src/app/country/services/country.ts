@@ -40,34 +40,30 @@ export class CountryService {
         );
       })
     );
-}
+   }
 
-//   searchByCapital(query: string): Observable<Country[]> {
+// --- MÉTODO 2: BÚSQUEDA POR PAÍS ---
+  searchByCountry(query: string): Observable<Country[]> {
+    query = query.toLowerCase();
+    const headers = new HttpHeaders({ Authorization: `Bearer ${API_KEY}` });
 
-//     query = query.toLowerCase();
+    // Cambiamos /name/${query} por el parámetro de consulta ?q=${query}
+    return this.http
+      .get<RESTCountries>(`${API_URL}?q=${query}`, { headers })
+      .pipe(
+        map((resp) => {
+          if (!resp.data.objects || resp.data.objects.length === 0) {
+            throw new Error('Sin coincidencias');
+          }
+          return CountryMapper.mapRestCountryArrayToCountryArray(resp.data.objects);
+        }),
+        catchError((error) => {
+          console.log('Error fetching', error);
+          return throwError(
+            () => new Error(`Error: No se pudo obtener países con ese query ${query}`)
+          );
+        })
+      );
+  }
 
-//     const headers = new HttpHeaders({
-//       Authorization: `Bearer ${API_KEY}`
-//     });
-
-//     return this.http
-//       .get<RESTCountries>(
-//         `${API_URL}/capitals?q=${query}`,
-//         { headers }
-//       )
-//       .pipe(
-//         map((resp) =>
-//           CountryMapper.mapRestCountryArrayToCountryArray(
-//             resp.data.objects
-//           )),
-//         catchError((error) => {
-
-//         console.log('Error fetching', error);
-
-//         return throwError(
-//           () => new Error('No se pudo obtener países con ese query')
-//         );
-// })
-//       );
-//   }
 }
