@@ -13,6 +13,10 @@ export class CountryList {
 
   countries = input<any[]>([]);
 
+  errorMessage = input<string | unknown | null>();
+  isloading = input<boolean>(false);
+  isempty = input<boolean>(false);
+
   ngDoCheck() {
     console.log('CountryList recibe:', this.countries());
   }

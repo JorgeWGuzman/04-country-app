@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 
-import { catchError, map, Observable, throwError } from 'rxjs';
+import { catchError, delay, map, Observable, throwError } from 'rxjs';
 
 import { RESTCountries } from '../interfaces/rest-countries-interfase-2';
 import type { Country } from '../interfaces/country.interface';
@@ -31,6 +31,7 @@ export class CountryService {
         }
         return CountryMapper.mapRestCountryArrayToCountryArray(resp.data.objects);
       }),
+
       catchError((error) => {
         console.log('Error fetching', error);
 
@@ -57,6 +58,7 @@ export class CountryService {
           }
           return CountryMapper.mapRestCountryArrayToCountryArray(resp.data.objects);
         }),
+
         catchError((error) => {
           console.log('Error fetching', error);
           return throwError(
@@ -65,5 +67,50 @@ export class CountryService {
         })
       );
   }
+
+searchCountryByAlphaCode(code: string): Observable<Country> {
+
+  code = code.toLowerCase();
+
+  const headers = new HttpHeaders({
+    Authorization: `Bearer ${API_KEY}`
+  });
+
+  return this.http
+    .get<RESTCountries>(
+      `${API_URL}/code?q=${code}`,
+      { headers }
+    )
+    .pipe(
+
+      map((resp) => {
+
+        if (!resp.data.objects || resp.data.objects.length === 0) {
+          throw new Error('Sin coincidencias');
+        }
+
+        return CountryMapper.mapRestCountryArrayToCountryArray(
+          resp.data.objects
+        );
+
+      }),
+
+      map((countries) => countries.at(0)!),
+
+      catchError((error) => {
+
+        console.log('Error fetching', error);
+
+        return throwError(
+          () => new Error(
+            `Error: No se pudo obtener el país con el código ${code}`
+          )
+        );
+
+      })
+
+    );
+
+}
 
 }

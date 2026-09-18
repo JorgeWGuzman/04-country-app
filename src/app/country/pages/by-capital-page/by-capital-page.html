@@ -3,15 +3,11 @@ placeholder="Buscar por capital"
 (value)="query.set($event)"
 />
 
-@if (countryResource.error()) {
-  <!-- $any() le permite al HTML leer la propiedad 'message' del objeto Error -->
-  <h3>{{ $any(countryResource.error()).message }}</h3>
-} @if(countryResource.hasValue()) {
-  <country-list [countries]="countryResource.value()!" />
-}
-<!-- @if (countryResource.error()) {
-  <h3>{{ countryResource.error() }}</h3>
-} @if(countryResource.hasValue()) {
-  <country-list [countries]="countryResource.value()!" />
-} -->
+  <country-list
+  [countries]="countryResource.value()"
+  [errorMessage]="countryResource.error()"
+  [isempty]="countryResource.value().length === 0"
+  [isloading]="countryResource.isLoading()"
+   />
+
 

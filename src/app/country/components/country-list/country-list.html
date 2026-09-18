@@ -29,7 +29,33 @@
            class="link-primary cursor-pointer">Más información</a>
         </td>
       </tr>
-}
+      }
+
+      @if (errorMessage()) {
+        <tr>
+          <td colspan="8" class="text-center">
+            {{ errorMessage() }}
+          </td>
+        </tr>
+      }
+
+      <!-- Loading state -->
+       @if(countries().length === 0 && !isloading() && !errorMessage()) {
+        <tr>
+          <td colspan="8" class="text-center">
+            No se encontraron resutados
+          </td>
+        </tr>
+      }
+      <!-- Empty state -->
+      @if(isloading()) {
+        <tr>
+          <td colspan="8" class="text-center">
+            Buscando países o capitales...
+          </td>
+        </tr>
+      }
+
     </tbody>
   </table>
 </section>
