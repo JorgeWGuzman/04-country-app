@@ -1,13 +1,15 @@
 <country-search-input
-placeholder="Buscar por capital"
-(value)="query.set($event)"
+  placeholder="Buscar por capital"
+  [initialValue]="query()"
+  (value)="query.set($event)"
 />
 
-  <country-list
+<country-list
   [countries]="countryResource.value()"
-  [errorMessage]="countryResource.error()"
-  [isempty]="countryResource.value().length === 0"
+  [errorMessage]="countryResource.error() ? 'No se encontró ningún resultado para la búsqueda' : null"
   [isloading]="countryResource.isLoading()"
-   />
+  [query]="query()"
+  (onReset)="query.set('')"
+/>
 
 

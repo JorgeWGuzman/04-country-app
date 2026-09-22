@@ -8,5 +8,6 @@ import { Component, input, output } from '@angular/core';
 export class SearchInput {
 
   placeholder = input('Buscar');
+  initialValue = input<string>('');
   value= output<string>();
 }

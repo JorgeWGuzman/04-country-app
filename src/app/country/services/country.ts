@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 
-import { catchError, delay, map, Observable, throwError } from 'rxjs';
+import { catchError, delay, map, Observable, of, throwError } from 'rxjs';
 
 import { RESTCountries } from '../interfaces/rest-countries-interfase-2';
 import type { Country } from '../interfaces/country.interface';
@@ -36,9 +36,7 @@ export class CountryService {
         console.log('Error fetching', error);
 
         // 2. Lanzamos un texto directo (String) e inyectamos la variable query
-        return throwError(
-          () => new Error(`Error: No se pudo obtener países con ese query ${query}`)
-        );
+        return of<Country[]>([]);
       })
     );
    }
@@ -61,56 +59,35 @@ export class CountryService {
 
         catchError((error) => {
           console.log('Error fetching', error);
-          return throwError(
-            () => new Error(`Error: No se pudo obtener países con ese query ${query}`)
-          );
+          return of<Country[]>([]);
         })
       );
   }
 
-searchCountryByAlphaCode(code: string): Observable<Country> {
+// 1. Modificamos la firma para aceptar que puede devolver un país o nada (null)
+searchCountryByAlphaCode(code: string): Observable<Country | null> {
 
   code = code.toLowerCase();
-
-  const headers = new HttpHeaders({
-    Authorization: `Bearer ${API_KEY}`
-  });
+  const headers = new HttpHeaders({ Authorization: `Bearer ${API_KEY}` });
 
   return this.http
-    .get<RESTCountries>(
-      `${API_URL}/code?q=${code}`,
-      { headers }
-    )
+    .get<RESTCountries>(`${API_URL}/code?q=${code}`, { headers })
     .pipe(
-
       map((resp) => {
-
         if (!resp.data.objects || resp.data.objects.length === 0) {
           throw new Error('Sin coincidencias');
         }
-
-        return CountryMapper.mapRestCountryArrayToCountryArray(
-          resp.data.objects
-        );
-
+        return CountryMapper.mapRestCountryArrayToCountryArray(resp.data.objects);
       }),
 
       map((countries) => countries.at(0)!),
 
       catchError((error) => {
+        console.log('Error fetching por código controlado:', error);
 
-        console.log('Error fetching', error);
-
-        return throwError(
-          () => new Error(
-            `Error: No se pudo obtener el país con el código ${code}`
-          )
-        );
-
+        // 2. Devolvemos null de forma segura en lugar de un arreglo vacío
+        return of(null);
       })
-
     );
-
 }
-
 }
