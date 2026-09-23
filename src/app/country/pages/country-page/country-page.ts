@@ -5,10 +5,12 @@ import { map } from 'rxjs';
 
 import { CountryService } from '../../services/country';
 import { Country } from '../../interfaces/country.interface';
+import { NotFound } from '../../../shared/components/not-found/not-found';
+import { CountryInformation } from './country-information/country-information';
 
 @Component({
   selector: 'app-country-page',
-  imports: [RouterLink], // Imprescindible para que el botón "Regresar" funcione
+  imports: [NotFound, CountryInformation ], // Imprescindible para que el botón "Regresar" funcione
   templateUrl: './country-page.html',
 })
 export class CountryPage {
