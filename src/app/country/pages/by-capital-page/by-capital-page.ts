@@ -1,10 +1,11 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, linkedSignal, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop'; // 1. Nueva importación para rxResource
 import { SearchInput } from "../../components/search-input/search-input";
 import { CountryList } from "../../components/country-list/country-list";
 import { CountryService } from '../../services/country';
 import { Country } from '../../interfaces/country.interface';
 import { Observable, of } from 'rxjs'; // 2. Importamos 'of' de rxjs
+import { ActivatedRoute, Router } from '@angular/router';
 
 
 @Component({
@@ -14,10 +15,15 @@ import { Observable, of } from 'rxjs'; // 2. Importamos 'of' de rxjs
 })
 export class ByCapitalPage {
   countryService = inject(CountryService);
-  query = signal('');
 
-// 1. Tipamos rxResource: < TipoDeRespuesta, TipoDePetición >
-  // 1. Mantenemos los genéricos en la raíz
+
+  activatedRoute = inject(ActivatedRoute);
+  router = inject(Router);
+
+  queryParam = this.activatedRoute.snapshot.queryParamMap.get('query') ?? '';
+
+  query = linkedSignal(() => this.queryParam);
+
 
 countryResource = rxResource<Country[], { query: string }>({
 
@@ -33,76 +39,24 @@ countryResource = rxResource<Country[], { query: string }>({
       return of<Country[]>([]);
     }
 
+
     return this.countryService.searchByCapital(
-      params.query
-    );
-
+      params.query);
   }
-
 });
+onSearch(searchTerm: string) {
+    // 1. Actualiza el signal para disparar la petición de rxResource
+    this.query.set(searchTerm);
+
+    // 2. Modifica la URL para agregar el nuevo query string
+    this.router.navigate([], {
+      relativeTo: this.activatedRoute,
+      queryParams: { query: searchTerm },
+      queryParamsHandling: 'merge' // Mantiene otros parámetros si los hubiera
+    });
+  }
 
   }
 
 
 
-
-
-// import { Component, inject, resource, signal } from '@angular/core';
-// import { SearchInput } from "../../components/search-input/search-input";
-// import { CountryList } from "../../components/country-list/country-list";
-// import { CountryService } from '../../services/country';
-// import { Country } from '../../interfaces/country.interface';
-// import { first, firstValueFrom } from 'rxjs';
-
-// @Component({
-//   selector: 'app-by-capital-page',
-//   imports: [SearchInput, CountryList],
-//   templateUrl: './by-capital-page.html',
-// })
-// export class ByCapitalPage {
-//   countryService = inject(CountryService);
-//   query = signal('');
-
-
-//   countryResource = resource({
-//   // 1. Cambia 'request' por 'params' en la función reactiva
-//   params: () => ({ query: this.query() }),
-
-//   // 2. Desestructura 'params' en lugar de 'request' en el loader
-//   loader: async({ params }) => {
-//      if (!params.query) return [];
-
-//      return await firstValueFrom(
-//        // 3. Usa params.query para la petición
-//        this.countryService.searchByCapital(params.query)
-//      );
-//   },
-// });
-// }
-//   isLoading = signal(false);
-//   isError = signal<string|null>(null);
-//   countries = signal<Country[]>([]);
-
-//   onSearch(query: string) {
-//     if (this.isLoading()) return;
-//     this.isLoading.set(true);
-//     this.isError.set(null);
-
-// this.countryService.searchByCapital(query).subscribe({
-//   next: (countries) => {
-
-//   this.isLoading.set(false);
-
-//   if (countries.length === 0) {
-//     this.countries.set([]);
-//     this.isError.set(
-//       `No se encontró un país con esa capital: ${query}`
-//     );
-//     return;
-//   }
-
-//   this.countries.set(countries);
-// },
-// })
-//     }
-//   }

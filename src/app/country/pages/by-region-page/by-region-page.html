@@ -1,2 +1,21 @@
+<!-- Contenedor de 5 columnas para los botones de las regiones -->
+<div class="grid grid-cols-2 md:grid-cols-5 gap-2 mb-5">
+  @for (region of regions; track region.name) {
+    <button
+      class="btn"
+      [class]="region.color"
+      [class.btn-outline]="selectedRegion() !== region.name"
+      (click)="onRegionSelect(region.name)"> <!-- CAMBIO 1: Llamamos al nuevo método -->
+      {{ region.name }}
+    </button>
+  }
+</div>
 
-<country-list />
+<!-- Componente de tabla reciclado, conectado a la señal selectedRegion -->
+<country-list
+  [countries]="countryResource.value()"
+  [errorMessage]="countryResource.error() ? 'No se encontró ningún resultado para esta región' : null"
+  [isloading]="countryResource.isLoading()"
+  [query]="selectedRegion()"
+  (onReset)="onRegionSelect('')"
+/>
